@@ -90,12 +90,12 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
           </Button>
         </div>
 
-        <div className="grid gap-10 lg:grid-cols-[380px,1fr] lg:items-start">
+  <div className="grid gap-10 lg:grid-cols-[minmax(0,300px)_1fr] lg:items-start">
           <div className="flex flex-col gap-6">
-            <div className="relative overflow-hidden rounded-3xl border border-gray-200/70 bg-gray-50 shadow-sm dark:border-gray-800 dark:bg-gray-900/60">
+            <div className="relative overflow-hidden rounded-3xl border border-gray-200/70 bg-gray-50 shadow-sm dark:border-gray-800 dark:bg-gray-900/60 lg:w-[300px]">
               <div className="relative aspect-3/4 w-full">
                 {product.image ? (
-                  <Image src={product.image} alt={product.name} fill className="object-cover" sizes="(max-width: 1024px) 100vw, 380px" />
+                  <Image src={product.image} alt={product.name} fill className="object-cover" sizes="(max-width: 1024px) 100vw, 300px" />
                 ) : (
                   <div className="flex h-full w-full items-center justify-center text-sm text-gray-400">No image</div>
                 )}

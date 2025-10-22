@@ -152,16 +152,13 @@ export default function Home() {
           <Separator className="my-6" />
 
           {loading ? (
-            <div className="space-y-4" aria-live="polite">
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3" aria-live="polite">
+              <div className="col-span-full flex items-center gap-2 text-sm text-muted-foreground">
                 <Spinner className="size-4" />
                 <span>Loading products…</span>
               </div>
               {Array.from({ length: 3 }).map((_, index) => (
-                <div
-                  key={index}
-                  className="h-24 animate-pulse rounded-2xl border border-border/50 bg-muted/40"
-                />
+                <div key={index} className="h-80 animate-pulse rounded-2xl border border-border/50 bg-muted/40" />
               ))}
             </div>
           ) : error ? (
@@ -177,7 +174,7 @@ export default function Home() {
               </p>
             </div>
           ) : (
-            <div className="space-y-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
               {filteredProducts.map((product) => (
                 <ProductCard key={product._id} product={product} />
               ))}

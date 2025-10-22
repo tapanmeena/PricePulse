@@ -1,31 +1,14 @@
-# Price History Tracker - Frontend
+# PricePulse – Myntra Price Tracker
 
-A Next.js-based frontend application for tracking product prices across different e-commerce platforms.
+PricePulse is a polished Next.js frontend that helps you monitor real Myntra catalogue items, surface historical price swings, and react before the next discount disappears. Pair it with the companion Express API to queue URLs, scrape pricing, and visualise trends within a responsive dashboard.
 
 ## Features
 
-- **Product Management**
-  - Add products manually or by URL (auto-fetch product details)
-  - View all tracked products with detailed information
-  - Filter products by availability (In Stock/Out of Stock)
-  - Search products by name or domain
-
-- **Price Tracking**
-  - Visual price history charts
-  - Current price vs target price comparison
-  - Price change indicators
-  - Highest and lowest price tracking
-
-- **Scheduler Control**
-  - Start/stop automatic price checking
-  - Configure check frequency with cron expressions
-  - Manual price check trigger
-  - Real-time scheduler status
-
-- **Dashboard Analytics**
-  - Total products tracked
-  - Products that met target price
-  - In-stock product count
+- **Multi-URL intake** – paste up to 10 Myntra (or compatible marketplace) URLs at once and queue them for scraping.
+- **Smart catalogue** – search by product or domain, filter by availability state, and open the store listing in a click.
+- **Insightful charts** – Shadcn area charts with yearly-tooltips, min/max markers, and resilient styling for flat price histories.
+- **Price intelligence** – lowest/highest badges, target price checks, and quick facts for availability and last-checked timestamps.
+- **Accessible feedback** – optimistic loaders, keyboard shortcuts (⌘/Ctrl + K search), and responsive layouts tuned for mobile.
 
 ## Tech Stack
 
@@ -38,8 +21,8 @@ A Next.js-based frontend application for tracking product prices across differen
 
 ### Prerequisites
 
-- Node.js 18+ installed
-- Backend API running (default: http://localhost:3000)
+- Node.js 18+
+- PricePulse backend API running (default: http://localhost:3001)
 
 ### Installation
 
@@ -58,9 +41,9 @@ A Next.js-based frontend application for tracking product prices across differen
    cp .env.local.example .env.local
    ```
    
-   Edit `.env.local` and set your backend API URL:
+  Edit `.env.local` and set your backend API URL:
    ```
-   NEXT_PUBLIC_API_URL=http://localhost:3000/api
+  NEXT_PUBLIC_API_URL=http://localhost:3001/api
    ```
 
 4. Start the development server:
@@ -86,9 +69,9 @@ price-history-tracker/
 │   ├── layout.tsx           # Root layout
 │   └── page.tsx             # Main dashboard page
 ├── components/
-│   ├── AddProductForm.tsx   # Form to add products
-│   ├── ProductCard.tsx      # Product display card
-│   └── SchedulerControl.tsx # Scheduler management
+│   ├── AddProductForm.tsx   # Multi-URL submission form
+│   ├── ProductCard.tsx      # Price snapshot and quick stats
+│   └── SchedulerControl.tsx # Optional scheduler controls (hidden by default)
 ├── lib/
 │   └── api.ts               # API client and types
 ├── public/                  # Static assets
@@ -122,16 +105,11 @@ Displays individual product information including:
 - Availability status
 
 ### AddProductForm
-Two modes for adding products:
-- **URL Mode**: Paste URLs to auto-fetch product details
-- **Manual Mode**: Enter product details manually
+- Paste up to 10 URLs (newline or comma separated) and queue them in a single request
+- Automatic deduplication and submission progress feedback
 
 ### SchedulerControl
-Manages automatic price checking:
-- Start/stop scheduler
-- Configure check frequency
-- Trigger manual checks
-- View scheduler status
+- Optional panel to drive the backend scheduler (disabled in the public demo)
 
 ## Customization
 
@@ -146,13 +124,21 @@ Update the API base URL in `.env.local`:
 NEXT_PUBLIC_API_URL=your-api-url
 ```
 
+# Example Product
+
+Use any live Myntra URL to test the flow. For instance:
+
+- `https://www.myntra.com/sneakers/adidas/originals-men-white-forum-low-sneakers/25977822/buy`
+
+Paste the link into the "Track new products" widget, wait for the loader to finish, and PricePulse will render the product card and chart once the backend scrape completes.
+
 ## Features by File
 
-- **`lib/api.ts`**: API client with TypeScript types, product and scheduler endpoints
-- **`components/ProductCard.tsx`**: Product visualization with price history chart
-- **`components/AddProductForm.tsx`**: Dual-mode product addition (URL/Manual)
-- **`components/SchedulerControl.tsx`**: Cron-based scheduler management
-- **`app/page.tsx`**: Main dashboard with stats, filters, and product list
+- `lib/api.ts`: API client with TypeScript types, product and scheduler endpoints
+- `components/ProductCard.tsx`: Product visualization with price history chart and inline loaders
+- `components/AddProductForm.tsx`: Multi-URL product submission with optimistic states
+- `components/SchedulerControl.tsx`: Cron-based scheduler management (optional)
+- `app/page.tsx`: Main dashboard with stats, filters, loaders, and product list
 
 ## Development
 
@@ -169,4 +155,4 @@ pnpm build
 
 ## License
 
-This project is part of the Price History Tracker system.
+This project is part of the PricePulse price-tracking suite.
