@@ -2,6 +2,10 @@
   "name": "price-history-tracker",
   "version": "0.1.0",
   "private": true,
+  "author": {
+    "name": "Tapan Meena",
+    "email": "tapanmeena1998@gmail.com"
+  },
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build --turbopack",
