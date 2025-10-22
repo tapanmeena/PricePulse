@@ -2,10 +2,11 @@
 
 import { Product } from '@/lib/api';
 import Image from 'next/image';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowUpRight, CircleCheck, CircleX, TrendingDown, TrendingUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Spinner } from '@/components/ui/spinner';
 
 interface ProductCardProps {
   product: Product;
@@ -13,6 +14,7 @@ interface ProductCardProps {
 
 export default function ProductCard({ product }: ProductCardProps) {
   const router = useRouter();
+  const [isNavigating, setIsNavigating] = useState(false);
   const priceHistory = product.priceHistory ?? [];
   const lowestPrice = priceHistory.length > 0 ? Math.min(...priceHistory.map((entry) => entry.price)) : product.currentPrice;
   const highestPrice = priceHistory.length > 0 ? Math.max(...priceHistory.map((entry) => entry.price)) : product.currentPrice;
@@ -36,6 +38,8 @@ export default function ProductCard({ product }: ProductCardProps) {
   const isInStock = !isExplicitlyOutOfStock && hasPositiveSignal;
 
   const handleCardClick = () => {
+    if (isNavigating) return;
+    setIsNavigating(true);
     void router.push(`/product/${product._id}`);
   };
 
@@ -56,8 +60,14 @@ export default function ProductCard({ product }: ProductCardProps) {
       tabIndex={0}
       onClick={handleCardClick}
       onKeyDown={handleKeyDown}
-      className="group flex cursor-pointer flex-col gap-4 rounded-2xl border border-gray-200/70 bg-white/95 p-4 shadow-sm transition-all hover:-translate-y-1 hover:shadow-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:border-gray-800 dark:bg-slate-900"
+      aria-busy={isNavigating}
+      className="group relative flex cursor-pointer flex-col gap-4 rounded-2xl border border-gray-200/70 bg-white/95 p-4 shadow-sm transition-all hover:-translate-y-1 hover:shadow-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:border-gray-800 dark:bg-slate-900"
     >
+      {isNavigating && (
+        <div className="absolute inset-0 z-10 flex items-center justify-center rounded-2xl bg-white/70 backdrop-blur-sm dark:bg-slate-950/70">
+          <Spinner className="size-6" />
+        </div>
+      )}
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start">
         <div className="flex flex-col gap-3 sm:flex-row lg:w-56">
           <div className="relative aspect-4/5 w-full overflow-hidden rounded-xl bg-gray-100 dark:bg-gray-800 sm:w-44">

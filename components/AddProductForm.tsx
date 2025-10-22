@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
+import { Spinner } from "@/components/ui/spinner";
 import { cn } from "@/lib/utils";
 
 interface AddProductFormProps {
@@ -136,6 +137,7 @@ export default function AddProductForm({ onProductAdded }: AddProductFormProps) 
             We crawl URLs instantly and refresh the price every few hours.
           </p>
           <Button type="submit" disabled={isSubmitDisabled} className="min-w-[160px]">
+            {loading && <Spinner className="mr-2 size-4 border-2 border-border/40 border-t-background" />}
             {loading ? "Processing…" : "Start tracking"}
           </Button>
         </div>
