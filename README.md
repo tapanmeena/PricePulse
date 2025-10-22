@@ -1,36 +1,172 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Price History Tracker - Frontend
+
+A Next.js-based frontend application for tracking product prices across different e-commerce platforms.
+
+## Features
+
+- **Product Management**
+  - Add products manually or by URL (auto-fetch product details)
+  - View all tracked products with detailed information
+  - Filter products by availability (In Stock/Out of Stock)
+  - Search products by name or domain
+
+- **Price Tracking**
+  - Visual price history charts
+  - Current price vs target price comparison
+  - Price change indicators
+  - Highest and lowest price tracking
+
+- **Scheduler Control**
+  - Start/stop automatic price checking
+  - Configure check frequency with cron expressions
+  - Manual price check trigger
+  - Real-time scheduler status
+
+- **Dashboard Analytics**
+  - Total products tracked
+  - Products that met target price
+  - In-stock product count
+
+## Tech Stack
+
+- **Framework**: Next.js 15.5.6 (App Router)
+- **UI**: React 19.2.0 + TailwindCSS 4.1.15
+- **Language**: TypeScript 5.9.3
+- **Build Tool**: Turbopack
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
+
+- Node.js 18+ installed
+- Backend API running (default: http://localhost:3000)
+
+### Installation
+
+1. Clone the repository and navigate to the frontend directory:
+   ```bash
+   cd price-history-tracker
+   ```
+
+2. Install dependencies:
+   ```bash
+   pnpm install
+   ```
+
+3. Configure environment variables:
+   ```bash
+   cp .env.local.example .env.local
+   ```
+   
+   Edit `.env.local` and set your backend API URL:
+   ```
+   NEXT_PUBLIC_API_URL=http://localhost:3000/api
+   ```
+
+4. Start the development server:
+   ```bash
+   pnpm dev
+   ```
+
+5. Open [http://localhost:3000](http://localhost:3000) in your browser
+
+### Build for Production
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+pnpm build
+pnpm start
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Project Structure
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```
+price-history-tracker/
+├── app/
+│   ├── globals.css          # Global styles
+│   ├── layout.tsx           # Root layout
+│   └── page.tsx             # Main dashboard page
+├── components/
+│   ├── AddProductForm.tsx   # Form to add products
+│   ├── ProductCard.tsx      # Product display card
+│   └── SchedulerControl.tsx # Scheduler management
+├── lib/
+│   └── api.ts               # API client and types
+├── public/                  # Static assets
+├── .env.local              # Environment variables
+└── package.json
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## API Integration
 
-## Learn More
+The frontend integrates with the following backend endpoints:
 
-To learn more about Next.js, take a look at the following resources:
+### Products API (`/api/products`)
+- `GET /` - Fetch all products
+- `POST /` - Create product manually
+- `POST /url` - Create product(s) by URL
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### Scheduler API (`/api/schedule`)
+- `POST /start` - Start price checker
+- `POST /stop` - Stop price checker
+- `GET /status` - Get scheduler status
+- `POST /check-now` - Trigger manual price check
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Components
 
-## Deploy on Vercel
+### ProductCard
+Displays individual product information including:
+- Product image, name, and URL
+- Current price with change indicator
+- Target price status
+- Price history visualization
+- Availability status
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### AddProductForm
+Two modes for adding products:
+- **URL Mode**: Paste URLs to auto-fetch product details
+- **Manual Mode**: Enter product details manually
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### SchedulerControl
+Manages automatic price checking:
+- Start/stop scheduler
+- Configure check frequency
+- Trigger manual checks
+- View scheduler status
+
+## Customization
+
+### Styling
+The application uses TailwindCSS with dark mode support. Modify styles in:
+- `app/globals.css` - Global styles
+- Component files - Component-specific styles
+
+### API Configuration
+Update the API base URL in `.env.local`:
+```
+NEXT_PUBLIC_API_URL=your-api-url
+```
+
+## Features by File
+
+- **`lib/api.ts`**: API client with TypeScript types, product and scheduler endpoints
+- **`components/ProductCard.tsx`**: Product visualization with price history chart
+- **`components/AddProductForm.tsx`**: Dual-mode product addition (URL/Manual)
+- **`components/SchedulerControl.tsx`**: Cron-based scheduler management
+- **`app/page.tsx`**: Main dashboard with stats, filters, and product list
+
+## Development
+
+```bash
+# Run development server with Turbopack
+pnpm dev
+
+# Run linter
+pnpm lint
+
+# Build for production
+pnpm build
+```
+
+## License
+
+This project is part of the Price History Tracker system.
