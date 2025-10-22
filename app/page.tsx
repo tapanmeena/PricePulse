@@ -1,20 +1,62 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { Product, productApi } from '@/lib/api';
-import ProductCard from '@/components/ProductCard';
-import AddProductForm from '@/components/AddProductForm';
-import SchedulerControl from '@/components/SchedulerControl';
+import { useEffect, useMemo, useRef, useState } from "react";
+import ProductCard from "@/components/ProductCard";
+import AddProductForm from "@/components/AddProductForm";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
+import { Product, productApi } from "@/lib/api";
+
+type StockFilter = "all" | "in-stock" | "out-of-stock";
+
+const FILTERS: { label: string; value: StockFilter }[] = [
+  { label: "All", value: "all" },
+  { label: "In stock", value: "in-stock" },
+  { label: "Out of stock", value: "out-of-stock" },
+];
+
+const FAQS = [
+  {
+    question: "How frequently do you refresh product prices?",
+    answer: "We run automated checks every few hours and resync instantly whenever you add a new URL.",
+  },
+  {
+    question: "Can I paste URLs from other stores?",
+    answer: "Yes. While we optimise for Myntra, the tracker works with most major marketplaces too.",
+  },
+  {
+    question: "What happens after I submit URLs?",
+    answer: "We queue them for processing, extract metadata, and start building the price history timeline for each product.",
+  },
+];
 
 export default function Home() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [filterStatus, setFilterStatus] = useState<'all' | 'in-stock' | 'out-of-stock'>('all');
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filterStatus, setFilterStatus] = useState<StockFilter>("all");
+  const searchInputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
-    fetchProducts();
+    void fetchProducts();
+  }, []);
+
+  useEffect(() => {
+    const handleCommandK = (event: KeyboardEvent) => {
+      const key = event.key.toLowerCase();
+      const isMac = /mac/i.test(navigator.platform);
+      if ((event.metaKey && isMac) || (event.ctrlKey && !isMac)) {
+        if (key === "k") {
+          event.preventDefault();
+          searchInputRef.current?.focus();
+        }
+      }
+    };
+
+    window.addEventListener("keydown", handleCommandK);
+    return () => window.removeEventListener("keydown", handleCommandK);
   }, []);
 
   const fetchProducts = async () => {
@@ -24,141 +66,109 @@ export default function Home() {
       const data = await productApi.getAllProducts();
       setProducts(data);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch products');
+      setError(err instanceof Error ? err.message : "Failed to fetch products");
     } finally {
       setLoading(false);
     }
   };
 
-  const filteredProducts = products.filter((product) => {
-    const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         product.domain.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    const matchesFilter = filterStatus === 'all' ||
-                         (filterStatus === 'in-stock' && product.availability.toLowerCase().includes('stock')) ||
-                         (filterStatus === 'out-of-stock' && !product.availability.toLowerCase().includes('stock'));
+  const filteredProducts = useMemo(() => {
+    return products.filter((product) => {
+      const matchesSearch =
+        product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        product.domain.toLowerCase().includes(searchTerm.toLowerCase());
 
-    return matchesSearch && matchesFilter;
-  });
+      const availability = product.availability.toLowerCase();
+      const matchesFilter =
+        filterStatus === "all" ||
+        (filterStatus === "in-stock" && availability.includes("stock")) ||
+        (filterStatus === "out-of-stock" && !availability.includes("stock"));
 
-  const stats = {
-    total: products.length,
-    targetMet: products.filter(p => p.targetPrice && p.currentPrice <= p.targetPrice).length,
-    inStock: products.filter(p => p.availability.toLowerCase().includes('stock')).length,
-  };
+      return matchesSearch && matchesFilter;
+    });
+  }, [products, searchTerm, filterStatus]);
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      {/* Header */}
-      <header className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
-            Price History Tracker
+    <div className="relative min-h-screen overflow-hidden bg-linear-to-b from-background via-background to-muted/40 pb-20">
+      <div className="pointer-events-none absolute inset-x-0 -top-64 -z-10 h-[420px] bg-linear-to-br from-primary/30 via-purple-500/10 to-transparent blur-3xl" />
+
+      <main className="mx-auto flex w-full max-w-6xl flex-col gap-12 px-4 pt-16">
+        <section className="max-w-3xl space-y-6" id="features">
+          <span className="inline-flex items-center rounded-full bg-primary/10 px-4 py-1 text-xs font-semibold uppercase tracking-[0.12em] text-primary">
+            Intelligent price tracking
+          </span>
+          <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl lg:text-6xl">
+            Capture every price drop before it disappears.
           </h1>
-          <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
-            Track product prices and get notified when they drop
+          <p className="text-lg text-muted-foreground">
+            Paste product links, monitor price swings, and understand historical trends in a single, elegant dashboard.
           </p>
-        </div>
-      </header>
+        </section>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 border border-gray-200 dark:border-gray-700">
-            <div className="text-sm font-medium text-gray-500 dark:text-gray-400">Total Products</div>
-            <div className="mt-2 text-3xl font-bold text-gray-900 dark:text-gray-100">{stats.total}</div>
-          </div>
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 border border-gray-200 dark:border-gray-700">
-            <div className="text-sm font-medium text-gray-500 dark:text-gray-400">Target Price Met</div>
-            <div className="mt-2 text-3xl font-bold text-green-600 dark:text-green-400">{stats.targetMet}</div>
-          </div>
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 border border-gray-200 dark:border-gray-700">
-            <div className="text-sm font-medium text-gray-500 dark:text-gray-400">In Stock</div>
-            <div className="mt-2 text-3xl font-bold text-blue-600 dark:text-blue-400">{stats.inStock}</div>
-          </div>
-        </div>
+        <AddProductForm onProductAdded={fetchProducts} />
 
-        {/* Controls Section */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-          <AddProductForm onProductAdded={fetchProducts} />
-          <SchedulerControl />
-        </div>
-
-        {/* Filters */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 mb-6 border border-gray-200 dark:border-gray-700">
-          <div className="flex flex-col sm:flex-row gap-4">
-            <div className="flex-1">
-              <input
-                type="text"
-                placeholder="Search products..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
+        <section className="rounded-2xl border border-border/60 bg-card/80 p-6 shadow-lg shadow-black/5" id="how-it-works">
+          <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
+            <div className="space-y-2">
+              <h2 className="text-xl font-semibold">Tracked products</h2>
+              <p className="text-sm text-muted-foreground">
+                Filter by status or search by product name and domain. New entries appear instantly after processing.
+              </p>
             </div>
-            <div className="flex gap-2">
-              <button
-                onClick={() => setFilterStatus('all')}
-                className={`px-4 py-2 rounded-md font-medium transition-colors ${
-                  filterStatus === 'all'
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
-                }`}
-              >
-                All
-              </button>
-              <button
-                onClick={() => setFilterStatus('in-stock')}
-                className={`px-4 py-2 rounded-md font-medium transition-colors ${
-                  filterStatus === 'in-stock'
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
-                }`}
-              >
-                In Stock
-              </button>
-              <button
-                onClick={() => setFilterStatus('out-of-stock')}
-                className={`px-4 py-2 rounded-md font-medium transition-colors ${
-                  filterStatus === 'out-of-stock'
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
-                }`}
-              >
-                Out of Stock
-              </button>
-              <button
-                onClick={fetchProducts}
-                className="px-4 py-2 rounded-md font-medium bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
-                title="Refresh products"
-              >
-                ↻ Refresh
-              </button>
+            <div className="flex w-full flex-col gap-3 md:w-auto md:flex-row md:items-center">
+              <div className="relative w-full md:w-72">
+                <Input
+                  ref={searchInputRef}
+                  value={searchTerm}
+                  onChange={(event) => setSearchTerm(event.target.value)}
+                  placeholder="Search by name or store domain"
+                  className="pl-3 pr-10"
+                />
+                <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-muted-foreground/70">
+                  ⌘K
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                {FILTERS.map((filter) => (
+                  <Button
+                    key={filter.value}
+                    type="button"
+                    variant={filterStatus === filter.value ? "default" : "secondary"}
+                    size="sm"
+                    className="px-4"
+                    onClick={() => setFilterStatus(filter.value)}
+                  >
+                    {filter.label}
+                  </Button>
+                ))}
+              </div>
+              <Button variant="outline" size="icon" onClick={fetchProducts} title="Refresh products">
+                ↻
+              </Button>
             </div>
           </div>
-        </div>
 
-        {/* Products List */}
-        <div className="space-y-4">
-          <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">
-            Tracked Products ({filteredProducts.length})
-          </h2>
+          <Separator className="my-6" />
 
           {loading ? (
-            <div className="text-center py-12">
-              <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-              <p className="mt-4 text-gray-600 dark:text-gray-400">Loading products...</p>
+            <div className="space-y-4">
+              {Array.from({ length: 3 }).map((_, index) => (
+                <div
+                  key={index}
+                  className="h-24 animate-pulse rounded-2xl border border-border/50 bg-muted/40"
+                />
+              ))}
             </div>
           ) : error ? (
-            <div className="bg-red-100 dark:bg-red-900 border border-red-400 dark:border-red-700 text-red-700 dark:text-red-200 px-4 py-3 rounded">
+            <div className="rounded-xl border border-destructive/40 bg-destructive/10 px-4 py-6 text-sm text-destructive">
               {error}
             </div>
           ) : filteredProducts.length === 0 ? (
-            <div className="text-center py-12 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
-              <p className="text-gray-600 dark:text-gray-400">
-                {searchTerm || filterStatus !== 'all' 
-                  ? 'No products match your filters' 
-                  : 'No products tracked yet. Add your first product above!'}
+            <div className="rounded-2xl border border-dashed border-border/60 bg-muted/20 px-6 py-16 text-center">
+              <p className="text-sm text-muted-foreground">
+                {searchTerm || filterStatus !== "all"
+                  ? "No products match your current filters."
+                  : "Paste a product URL above to start tracking price history."}
               </p>
             </div>
           ) : (
@@ -168,17 +178,29 @@ export default function Home() {
               ))}
             </div>
           )}
-        </div>
-      </main>
+        </section>
 
-      {/* Footer */}
-      <footer className="mt-12 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <p className="text-center text-sm text-gray-600 dark:text-gray-400">
-            Price History Tracker - Track prices and save money
+        <section
+          id="faqs"
+          className="rounded-2xl border border-border/60 bg-card/60 px-6 py-10 shadow-sm shadow-black/5"
+        >
+          <h2 className="text-2xl font-semibold">Frequently asked questions</h2>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Everything you need to know about how the tracker captures, cleans, and displays price history.
           </p>
-        </div>
-      </footer>
+          <div className="mt-8 grid gap-6 md:grid-cols-2">
+            {FAQS.map((faq) => (
+              <div
+                key={faq.question}
+                className="rounded-xl border border-border/40 bg-muted/30 p-5 shadow-sm"
+              >
+                <h3 className="text-sm font-semibold text-foreground">{faq.question}</h3>
+                <p className="mt-2 text-sm text-muted-foreground">{faq.answer}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+      </main>
     </div>
   );
 }

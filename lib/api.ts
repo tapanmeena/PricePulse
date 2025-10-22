@@ -53,6 +53,17 @@ export const productApi = {
     return result.data || [];
   },
 
+  async getProductById(id: string): Promise<Product> {
+    const response = await fetch(`${API_BASE_URL}/products/${id}`);
+    if (response.status === 404) {
+      throw new Error('Product not found');
+    }
+    if (!response.ok) throw new Error('Failed to fetch product');
+    const result: ApiResponse<Product> = await response.json();
+    if (!result.data) throw new Error('No product data returned');
+    return result.data;
+  },
+
   // Create product manually
   async createProduct(data: CreateProductInput): Promise<Product> {
     const response = await fetch(`${API_BASE_URL}/products`, {
