@@ -6,6 +6,7 @@ const navLinks = [
   { label: "How it works", href: "#how-it-works" },
   { label: "Features", href: "#features" },
   { label: "FAQs", href: "#faqs" },
+  { label: "Admin", href: "/admin" },
 ];
 
 export default function Header() {
@@ -24,9 +25,15 @@ export default function Header() {
 
         <nav className="hidden items-center gap-8 text-sm font-medium text-muted-foreground md:flex">
           {navLinks.map((link) => (
-            <a key={link.href} href={link.href} className="transition-colors hover:text-foreground">
-              {link.label}
-            </a>
+            link.href.startsWith('#') ? (
+              <a key={link.href} href={link.href} className="transition-colors hover:text-foreground">
+                {link.label}
+              </a>
+            ) : (
+              <Link key={link.href} href={link.href} className="transition-colors hover:text-foreground">
+                {link.label}
+              </Link>
+            )
           ))}
         </nav>
 
