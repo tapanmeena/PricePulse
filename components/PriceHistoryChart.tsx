@@ -1,102 +1,86 @@
-'use client'
+"use client";
 
-import { useMemo } from 'react'
-import {
-  Area,
-  AreaChart,
-  CartesianGrid,
-  ReferenceLine,
-  XAxis,
-  YAxis,
-  type TooltipProps,
-} from 'recharts'
-import type { NameType, ValueType } from 'recharts/types/component/DefaultTooltipContent'
+import { useMemo } from "react";
+import { Area, AreaChart, CartesianGrid, ReferenceLine, XAxis, YAxis, type TooltipProps } from "recharts";
+import type { NameType, ValueType } from "recharts/types/component/DefaultTooltipContent";
 
-import {
-  ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent,
-  type ChartConfig,
-} from '@/components/ui/chart'
+import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } from "@/components/ui/chart";
 
 interface PriceHistoryPoint {
-  date: string
-  price: number
+  date: string;
+  price: number;
 }
 
 interface PriceHistoryChartProps {
-  data: PriceHistoryPoint[]
-  currency: string
+  data: PriceHistoryPoint[];
+  currency: string;
 }
 
 const chartConfig = {
   price: {
-    label: 'Price',
-    color: 'hsl(var(--chart-1))',
+    label: "Price",
+    color: "hsl(var(--chart-1))",
   },
   lowest: {
-    label: 'Lowest',
-    color: 'hsl(var(--chart-2))',
+    label: "Lowest",
+    color: "hsl(var(--chart-2))",
   },
   highest: {
-    label: 'Highest',
-    color: 'hsl(var(--chart-3))',
+    label: "Highest",
+    color: "hsl(var(--chart-3))",
   },
-} satisfies ChartConfig
+} satisfies ChartConfig;
 
-type TooltipFormatter = NonNullable<TooltipProps<ValueType, NameType>['formatter']>
+type TooltipFormatter = NonNullable<TooltipProps<ValueType, NameType>["formatter"]>;
 
 export default function PriceHistoryChart({ data, currency }: PriceHistoryChartProps) {
   const numberFormatter = useMemo(
     () =>
-      new Intl.NumberFormat('en-IN', {
+      new Intl.NumberFormat("en-IN", {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2,
       }),
     []
-  )
+  );
 
   const formattedData = useMemo(
     () =>
       data.map((entry) => {
-        const date = new Date(entry.date)
+        const date = new Date(entry.date);
         return {
-          label: date.toLocaleDateString('en-IN', { month: 'short', day: 'numeric' }),
-          tooltipLabel: date.toLocaleDateString('en-IN', {
-            month: 'long',
-            day: 'numeric',
-            year: 'numeric',
+          label: date.toLocaleDateString("en-IN", { month: "short", day: "numeric" }),
+          tooltipLabel: date.toLocaleDateString("en-IN", {
+            month: "long",
+            day: "numeric",
+            year: "numeric",
           }),
           price: entry.price,
-        }
+        };
       }),
     [data]
-  )
+  );
 
   const tooltipFormatter: TooltipFormatter = (value, _name, item) => {
-    const numericValue = typeof value === 'number' ? value : Number(value)
+    const numericValue = typeof value === "number" ? value : Number(value);
 
     if (Number.isNaN(numericValue)) {
-      return value
+      return value;
     }
 
-    const payload = item && 'payload' in item ? ((item.payload as (typeof formattedData)[number]) ?? undefined) : undefined
+    const payload = item && "payload" in item ? (item.payload as (typeof formattedData)[number]) ?? undefined : undefined;
 
     return [
-      (
-        <span key="price-value" className="font-medium text-foreground">
-          {currency} {numberFormatter.format(numericValue)}
-        </span>
-      ),
+      <span key="price-value" className="font-medium text-foreground">
+        {currency} {numberFormatter.format(numericValue)}
+      </span>,
       payload?.tooltipLabel,
-    ]
-  }
+    ];
+  };
 
-  const priceValues = formattedData.map((entry) => entry.price)
-  const lowestPrice = priceValues.length ? Math.min(...priceValues) : null
-  const highestPrice = priceValues.length ? Math.max(...priceValues) : null
-  const isFlatSeries =
-    typeof lowestPrice === 'number' && typeof highestPrice === 'number' && lowestPrice === highestPrice
+  const priceValues = formattedData.map((entry) => entry.price);
+  const lowestPrice = priceValues.length ? Math.min(...priceValues) : null;
+  const highestPrice = priceValues.length ? Math.max(...priceValues) : null;
+  const isFlatSeries = typeof lowestPrice === "number" && typeof highestPrice === "number" && lowestPrice === highestPrice;
 
   return (
     <ChartContainer config={chartConfig} className="h-[300px] w-full">
@@ -109,34 +93,23 @@ export default function PriceHistoryChart({ data, currency }: PriceHistoryChartP
         </defs>
         <CartesianGrid vertical={false} strokeDasharray="4 4" />
         <XAxis dataKey="label" tickLine={false} axisLine stroke="hsl(var(--muted-foreground))" tickMargin={8} />
-        <YAxis
-          width={64}
-          tickLine={false}
-          axisLine={false}
-          tickFormatter={(value) => numberFormatter.format(Number(value))}
-        />
+        <YAxis width={64} tickLine={false} axisLine={false} tickFormatter={(value) => numberFormatter.format(Number(value))} />
         <ChartTooltip
-          cursor={{ strokeDasharray: '4 4' }}
-          content={
-            <ChartTooltipContent
-              indicator="line"
-              labelKey="tooltipLabel"
-              formatter={tooltipFormatter}
-            />
-          }
+          cursor={{ strokeDasharray: "4 4" }}
+          content={<ChartTooltipContent indicator="line" labelKey="tooltipLabel" formatter={tooltipFormatter} />}
         />
         {isFlatSeries ? (
-          typeof lowestPrice === 'number' && (
+          typeof lowestPrice === "number" && (
             <ReferenceLine
               y={lowestPrice}
               stroke="var(--color-price)"
               strokeDasharray="6 4"
               strokeWidth={1.5}
               label={{
-                value: 'Price',
-                position: 'insideLeft',
+                value: "Price",
+                position: "insideLeft",
                 style: {
-                  fill: 'var(--color-price)',
+                  fill: "var(--color-price)",
                   fontSize: 11,
                   fontWeight: 600,
                 },
@@ -145,34 +118,34 @@ export default function PriceHistoryChart({ data, currency }: PriceHistoryChartP
           )
         ) : (
           <>
-            {typeof lowestPrice === 'number' && (
+            {typeof lowestPrice === "number" && (
               <ReferenceLine
                 y={lowestPrice}
                 stroke="var(--color-lowest)"
                 strokeDasharray="6 4"
                 strokeWidth={1.5}
                 label={{
-                  value: 'Lowest',
-                  position: 'insideLeft',
+                  value: "Lowest",
+                  position: "insideLeft",
                   style: {
-                    fill: 'var(--color-lowest)',
+                    fill: "var(--color-lowest)",
                     fontSize: 11,
                     fontWeight: 600,
                   },
                 }}
               />
             )}
-            {typeof highestPrice === 'number' && (
+            {typeof highestPrice === "number" && (
               <ReferenceLine
                 y={highestPrice}
-                stroke="var(--color-highest)"
+                stroke="pink"
                 strokeDasharray="6 4"
                 strokeWidth={1.5}
                 label={{
-                  value: 'Highest',
-                  position: 'insideLeft',
+                  value: "Highest",
+                  position: "insideLeft",
                   style: {
-                    fill: 'var(--color-highest)',
+                    fill: "var(--color-highest)",
                     fontSize: 11,
                     fontWeight: 600,
                   },
@@ -192,5 +165,5 @@ export default function PriceHistoryChart({ data, currency }: PriceHistoryChartP
         />
       </AreaChart>
     </ChartContainer>
-  )
+  );
 }

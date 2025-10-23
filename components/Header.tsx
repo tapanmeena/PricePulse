@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Menu, Package2 } from "lucide-react";
+import Image from "next/image";
 
 const navLinks = [
   { label: "How it works", href: "#how-it-works" },
@@ -15,7 +16,8 @@ export default function Header() {
       <div className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between px-4">
         <Link href="/" className="flex items-center gap-3 text-foreground">
           <span className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary">
-            <Package2 className="h-5 w-5" />
+            {/* <Package2 className="h-5 w-5" /> */}
+            <Image src="/logo.png" alt="Logo" width={20} height={20} />
           </span>
           <div className="flex flex-col">
             <span className="text-lg font-semibold tracking-tight">PricePulse</span>
@@ -24,8 +26,8 @@ export default function Header() {
         </Link>
 
         <nav className="hidden items-center gap-8 text-sm font-medium text-muted-foreground md:flex">
-          {navLinks.map((link) => (
-            link.href.startsWith('#') ? (
+          {navLinks.map((link) =>
+            link.href.startsWith("#") ? (
               <a key={link.href} href={link.href} className="transition-colors hover:text-foreground">
                 {link.label}
               </a>
@@ -34,7 +36,7 @@ export default function Header() {
                 {link.label}
               </Link>
             )
-          ))}
+          )}
         </nav>
 
         <div className="hidden items-center gap-3 md:flex">
