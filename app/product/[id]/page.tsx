@@ -1,18 +1,18 @@
-import Image from 'next/image';
-import Link from 'next/link';
-import { notFound } from 'next/navigation';
-import { cache } from 'react';
-import PriceHistoryChart from '@/components/PriceHistoryChart';
-import { Section } from '@/components/Section';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import type { Product, ApiResponse } from '@/lib/api';
-import { ArrowLeft, ArrowUpRight, CalendarDays, CircleCheck, CircleX, Store, TrendingDown, TrendingUp } from 'lucide-react';
+import Image from "next/image";
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import { cache } from "react";
+import PriceHistoryChart from "@/components/PriceHistoryChart";
+import { Section } from "@/components/Section";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import type { Product, ApiResponse } from "@/lib/api";
+import { ArrowLeft, ArrowUpRight, CalendarDays, CircleCheck, CircleX, Store, TrendingDown, TrendingUp } from "lucide-react";
 
 const getProduct = cache(async (id: string): Promise<Product | null> => {
-  const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+  const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api";
   const response = await fetch(`${baseUrl}/products/${id}`, {
-    cache: 'no-store',
+    cache: "no-store",
   });
 
   if (response.status === 404) {
@@ -32,7 +32,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   const product = await getProduct(id);
   if (!product) {
     return {
-      title: 'Product not found | PricePulse',
+      title: "Product not found | PricePulse",
     };
   }
 
@@ -50,26 +50,34 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
     notFound();
   }
 
-  const priceHistory = [...(product.priceHistory ?? [])].sort(
-    (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime(),
-  );
+  // Build a local, sorted copy of the product's price history and
+  // ensure there is a checkpoint for today using the current price.
+  const originalHistory = [...(product.priceHistory ?? [])];
+  const sortedHistory = originalHistory.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+
+  // Normalize date to YYYY-MM-DD for comparison
+  const todayKey = new Date().toISOString().slice(0, 10);
+  const hasToday = sortedHistory.some((entry) => (entry.date || "").slice(0, 10) === todayKey);
+
+  const priceHistory = hasToday ? sortedHistory : [...sortedHistory, { price: product.currentPrice, date: new Date().toISOString() }];
+
   const lowestPrice = priceHistory.length > 0 ? Math.min(...priceHistory.map((entry) => entry.price)) : product.currentPrice;
   const highestPrice = priceHistory.length > 0 ? Math.max(...priceHistory.map((entry) => entry.price)) : product.currentPrice;
   const firstPrice = priceHistory.length > 0 ? priceHistory[0].price : product.currentPrice;
   const priceChange = product.currentPrice - firstPrice;
 
-  const numberFormatter = new Intl.NumberFormat('en-IN', {
+  const numberFormatter = new Intl.NumberFormat("en-IN", {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   });
 
-  const availabilityLower = (product.availability ?? '').toLowerCase();
-  const isExplicitlyOutOfStock = availabilityLower.includes('out of stock') || availabilityLower.includes('outofstock') || availabilityLower.includes('sold out');
-  const hasPositiveSignal = availabilityLower.includes('in stock') || availabilityLower.includes('instock') || availabilityLower.includes('available');
+  const availabilityLower = (product.availability ?? "").toLowerCase();
+  const isExplicitlyOutOfStock =
+    availabilityLower.includes("out of stock") || availabilityLower.includes("outofstock") || availabilityLower.includes("sold out");
+  const hasPositiveSignal =
+    availabilityLower.includes("in stock") || availabilityLower.includes("instock") || availabilityLower.includes("available");
   const isInStock = !isExplicitlyOutOfStock && hasPositiveSignal;
-  const statusStyles = isInStock
-    ? 'text-emerald-600 bg-emerald-500/10 border-emerald-500/20'
-    : 'text-rose-600 bg-rose-500/10 border-rose-500/20';
+  const statusStyles = isInStock ? "text-emerald-600 bg-emerald-500/10 border-emerald-500/20" : "text-rose-600 bg-rose-500/10 border-rose-500/20";
 
   return (
     <Section className="pb-24 pt-10">
@@ -90,7 +98,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
           </Button>
         </div>
 
-  <div className="grid gap-10 lg:grid-cols-[minmax(0,300px)_1fr] lg:items-start">
+        <div className="grid gap-10 lg:grid-cols-[minmax(0,300px)_1fr] lg:items-start">
           <div className="flex flex-col gap-6">
             <div className="relative overflow-hidden rounded-3xl border border-gray-200/70 bg-gray-50 shadow-sm dark:border-gray-800 dark:bg-gray-900/60 lg:w-[300px]">
               <div className="relative aspect-3/4 w-full">
@@ -123,7 +131,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
                 )}
                 <div className={`inline-flex items-center gap-2 self-start rounded-full border px-3 py-1 text-xs font-semibold ${statusStyles}`}>
                   {isInStock ? <CircleCheck className="size-3.5" /> : <CircleX className="size-3.5" />}
-                  {product.availability || 'Status unknown'}
+                  {product.availability || "Status unknown"}
                 </div>
               </CardContent>
             </Card>
@@ -144,7 +152,8 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
 
                 {priceHistory.length > 1 && (
                   <div className="rounded-2xl border border-gray-200/80 bg-gray-100/80 px-4 py-2 text-sm font-semibold text-gray-700 dark:border-gray-800 dark:bg-gray-800/60 dark:text-gray-200">
-                    {priceChange >= 0 ? '+' : '-'}{product.currency} {numberFormatter.format(Math.abs(priceChange))} since first tracked
+                    {priceChange >= 0 ? "+" : "-"}
+                    {product.currency} {numberFormatter.format(Math.abs(priceChange))} since first tracked
                   </div>
                 )}
 
@@ -183,12 +192,9 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
                 </div>
               </div>
             </div>
-
             <Card className="border-gray-200/70 bg-white/95 shadow-sm dark:border-gray-800 dark:bg-slate-900">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-lg font-semibold text-gray-900 dark:text-gray-50">
-                  Price history
-                </CardTitle>
+                <CardTitle className="flex items-center gap-2 text-lg font-semibold text-gray-900 dark:text-gray-50">Price history</CardTitle>
               </CardHeader>
               <CardContent>
                 {priceHistory.length > 0 ? (
