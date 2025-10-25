@@ -1,5 +1,5 @@
 // API Configuration
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api";
 
 // Types
 export interface PriceHistory {
@@ -23,6 +23,9 @@ export interface Product {
   lastChecked?: string;
   sku?: string;
   mpn?: string;
+  articleType?: string;
+  subCategory?: string;
+  masterCategory?: string;
 }
 
 export interface CreateProductInput {
@@ -48,7 +51,7 @@ export const productApi = {
   // Get all products
   async getAllProducts(): Promise<Product[]> {
     const response = await fetch(`${API_BASE_URL}/products`);
-    if (!response.ok) throw new Error('Failed to fetch products');
+    if (!response.ok) throw new Error("Failed to fetch products");
     const result: ApiResponse<Product[]> = await response.json();
     return result.data || [];
   },
@@ -56,40 +59,40 @@ export const productApi = {
   async getProductById(id: string): Promise<Product> {
     const response = await fetch(`${API_BASE_URL}/products/${id}`);
     if (response.status === 404) {
-      throw new Error('Product not found');
+      throw new Error("Product not found");
     }
-    if (!response.ok) throw new Error('Failed to fetch product');
+    if (!response.ok) throw new Error("Failed to fetch product");
     const result: ApiResponse<Product> = await response.json();
-    if (!result.data) throw new Error('No product data returned');
+    if (!result.data) throw new Error("No product data returned");
     return result.data;
   },
 
   // Create product manually
   async createProduct(data: CreateProductInput): Promise<Product> {
     const response = await fetch(`${API_BASE_URL}/products`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data),
     });
     if (!response.ok) {
       const error = await response.json();
-      throw new Error(error.message || 'Failed to create product');
+      throw new Error(error.message || "Failed to create product");
     }
     const result: ApiResponse<Product> = await response.json();
-    if (!result.data) throw new Error('No product data returned');
+    if (!result.data) throw new Error("No product data returned");
     return result.data;
   },
 
   // Create product by URL (auto-fetch details)
   async createProductByUrl(urls: string[]): Promise<Product[]> {
     const response = await fetch(`${API_BASE_URL}/products/url`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ urls }),
     });
     if (!response.ok) {
       const error = await response.json();
-      throw new Error(error.message || 'Failed to create product by URL');
+      throw new Error(error.message || "Failed to create product by URL");
     }
     const result: ApiResponse<Product[]> = await response.json();
     return result.data || [];
@@ -98,27 +101,27 @@ export const productApi = {
 
 export const schedulerApi = {
   // Start scheduler
-  async start(cronExpression: string = '0 */6 * * *'): Promise<void> {
+  async start(cronExpression: string = "0 */6 * * *"): Promise<void> {
     const response = await fetch(`${API_BASE_URL}/schedule/start`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ cronExpression }),
     });
-    if (!response.ok) throw new Error('Failed to start scheduler');
+    if (!response.ok) throw new Error("Failed to start scheduler");
   },
 
   // Stop scheduler
   async stop(): Promise<void> {
     const response = await fetch(`${API_BASE_URL}/schedule/stop`, {
-      method: 'POST',
+      method: "POST",
     });
-    if (!response.ok) throw new Error('Failed to stop scheduler');
+    if (!response.ok) throw new Error("Failed to stop scheduler");
   },
 
   // Get scheduler status
   async getStatus(): Promise<boolean> {
     const response = await fetch(`${API_BASE_URL}/schedule/status`);
-    if (!response.ok) throw new Error('Failed to get scheduler status');
+    if (!response.ok) throw new Error("Failed to get scheduler status");
     const result: ApiResponse<{ isRunning: boolean }> = await response.json();
     return result.data?.isRunning || false;
   },
@@ -126,8 +129,8 @@ export const schedulerApi = {
   // Trigger manual price check
   async checkNow(): Promise<void> {
     const response = await fetch(`${API_BASE_URL}/schedule/check-now`, {
-      method: 'POST',
+      method: "POST",
     });
-    if (!response.ok) throw new Error('Failed to trigger price check');
+    if (!response.ok) throw new Error("Failed to trigger price check");
   },
 };
