@@ -9,6 +9,39 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { Product, ApiResponse } from "@/lib/api";
 import { ArrowLeft, ArrowUpRight, CalendarDays, CircleCheck, CircleX, Store, TrendingDown, TrendingUp } from "lucide-react";
 
+const adaptProduct = (p: any): Product => {
+  const toNum = (v: unknown) => (typeof v === "number" ? v : Number(v ?? 0));
+  const createdAt = (p?.createdAt ?? new Date().toISOString()) as string;
+  const updatedAt = (p?.updatedAt ?? createdAt) as string;
+  const lastChecked = (p?.lastCheckedAt ?? updatedAt ?? createdAt) as string;
+
+  return {
+    _id: (p?.id ?? p?._id) as string,
+    name: (p?.name ?? "") as string,
+    image: p?.image ?? undefined,
+    url: (p?.url ?? "") as string,
+    domain: (p?.domain ?? "") as string,
+    currency: (p?.currency ?? "INR") as string,
+    availability: (p?.availability ?? "Unknown") as string,
+    currentPrice: toNum(p?.currentPrice),
+    targetPrice: p?.targetPrice !== undefined ? toNum(p?.targetPrice) : undefined,
+    priceHistory: Array.isArray(p?.priceHistory)
+      ? p.priceHistory
+          .map((h: any) => ({ price: toNum(h.price), date: (h.checkedAt ?? h.date) as string }))
+          .filter((h: { price: number; date: string }) => !!h.date)
+      : undefined,
+    createdAt,
+    updatedAt,
+    lastChecked,
+    sku: p?.sku ?? undefined,
+    mpn: p?.mpn ?? undefined,
+    brand: p?.brand ?? undefined,
+    articleType: p?.articleType ?? undefined,
+    subCategory: p?.subCategory ?? undefined,
+    masterCategory: p?.masterCategory ?? undefined,
+  };
+};
+
 const getProduct = cache(async (id: string): Promise<Product | null> => {
   const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api";
   const response = await fetch(`${baseUrl}/products/${id}`, {
@@ -23,8 +56,8 @@ const getProduct = cache(async (id: string): Promise<Product | null> => {
     throw new Error(`Failed to fetch product ${id}`);
   }
 
-  const result = (await response.json()) as ApiResponse<Product>;
-  return result.data ?? null;
+  const result = (await response.json()) as ApiResponse<any>;
+  return result.data ? adaptProduct(result.data) : null;
 });
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
