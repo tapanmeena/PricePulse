@@ -1,9 +1,37 @@
+"use client";
+
+import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { Menu, ArrowUpRight, Sparkles, GaugeCircle } from "lucide-react";
+import { Menu, ArrowUpRight, Sparkles } from "lucide-react";
+
+import { authApi } from "@/lib/api";
+import { useSession } from "@/hooks/useSession";
 
 export default function Header() {
+  const router = useRouter();
+  const session = useSession();
+  const [isSigningOut, setIsSigningOut] = useState(false);
+
+  const isAuthenticated = session.isAuthenticated;
+  const user = session.user;
+  const isAdmin = user?.role === "ADMIN";
+
+  async function handleLogout() {
+    setIsSigningOut(true);
+    try {
+      await authApi.logout();
+    } catch (error) {
+      console.error("Failed to sign out", error);
+    } finally {
+      setIsSigningOut(false);
+      router.push("/");
+      router.refresh();
+    }
+  }
+
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/60 bg-background/90 backdrop-blur supports-backdrop-filter:bg-background/70">
       <div className="pointer-events-none absolute inset-x-0 top-0 h-12 bg-[radial-gradient(ellipse_at_top,rgba(56,189,248,0.22),transparent_60%)]" />
@@ -40,12 +68,34 @@ export default function Header() {
         </Link>
 
         <div className="hidden items-center gap-3 md:flex">
-          <Button size="sm" className="hidden items-center gap-1.5 shadow-sm lg:inline-flex" asChild>
-            <Link href="/admin">
-              Admin
-              <ArrowUpRight className="h-3.5 w-3.5" />
-            </Link>
-          </Button>
+          {isAuthenticated ? (
+            <>
+              <span className="hidden text-sm text-muted-foreground lg:inline">Hi, {user?.nickname ?? user?.email}</span>
+              <Button size="sm" variant="ghost" asChild>
+                <Link href="/dashboard">Dashboard</Link>
+              </Button>
+              {isAdmin && (
+                <Button size="sm" className="items-center gap-1.5 shadow-sm" asChild>
+                  <Link href="/admin">
+                    Admin
+                    <ArrowUpRight className="h-3.5 w-3.5" />
+                  </Link>
+                </Button>
+              )}
+              <Button size="sm" variant="outline" onClick={handleLogout} disabled={isSigningOut}>
+                {isSigningOut ? "Signing out..." : "Sign out"}
+              </Button>
+            </>
+          ) : (
+            <>
+              <Button size="sm" variant="ghost" asChild>
+                <Link href="/login">Sign in</Link>
+              </Button>
+              <Button size="sm" className="shadow-sm" asChild>
+                <Link href="/register">Create account</Link>
+              </Button>
+            </>
+          )}
         </div>
 
         <Button variant="ghost" size="icon" className="md:hidden" aria-label="Open navigation">

@@ -10,6 +10,7 @@ import { RefreshCw, Search, Filter, Plus, ChevronLeft, ChevronRight } from 'luci
 import ProductCard from '@/components/ProductCard';
 import type { Product } from '@/lib/api';
 import { productApi, schedulerApi } from '@/lib/api';
+import { useRequireAuth } from '@/hooks/useSession';
 
 export default function AdminPage() {
   type SortField = 'name' | 'domain' | 'availability' | 'currency' | 'currentPrice' | 'targetPrice' | 'createdAt' | 'updatedAt' | 'lastChecked';
@@ -46,8 +47,10 @@ export default function AdminPage() {
   const [sortOrder, setSortOrder] = useState<SortOrder>('desc');
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(12);
+  const session = useRequireAuth();
 
   useEffect(() => {
+    if (session.status !== 'authenticated') return;
     let mounted = true;
     setLoading(true);
     productApi
@@ -60,12 +63,14 @@ export default function AdminPage() {
         console.error(err);
         setError('Failed to load products');
       })
-      .finally(() => mounted && setLoading(false));
+      .finally(() => {
+        if (mounted) setLoading(false);
+      });
 
     return () => {
       mounted = false;
     };
-  }, []);
+  }, [session.status]);
 
   const filterOptions = useMemo(() => {
     const domains = new Set<string>();
@@ -222,6 +227,14 @@ export default function AdminPage() {
       maxPrice: '',
     });
   };
+
+  if (session.status !== 'authenticated') {
+    return (
+      <div className="flex min-h-[60vh] items-center justify-center">
+        <Spinner className="h-6 w-6 animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-surface/50 pb-20">
